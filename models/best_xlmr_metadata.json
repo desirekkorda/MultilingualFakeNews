@@ -1,0 +1,11 @@
+{
+    "model": "xlm-roberta-base",
+    "max_length": 384,
+    "best_epoch": 8,
+    "validation_accuracy": 0.839,
+    "dataset": "TALLIP English",
+    "classes": {
+        "0": "Legit",
+        "1": "Fake"
+    }
+}
