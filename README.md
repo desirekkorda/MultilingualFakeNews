@@ -30,33 +30,33 @@ The long-term objective is to build an intelligent platform capable of detecting
 
 ### Machine Learning
 
-* XLM-RoBERTa Transformer Classifier
-* English Fake News Detection
-* PyTorch Implementation
-* Hugging Face Transformers Integration
+- XLM-RoBERTa Transformer Classifier
+- English Fake News Detection
+- PyTorch Implementation
+- Hugging Face Transformers Integration
 
 ### Data Processing
 
-* Text Cleaning Pipeline
-* Tokenization
-* Custom Dataset Class
-* Batch Processing
+- Text Cleaning Pipeline
+- Tokenization
+- Custom Dataset Class
+- Batch Processing
 
 ### Inference
 
-* Lazy Model Loading
-* Confidence Estimation
-* Probability Scores
-* Batch Prediction
-* Reusable Inference Engine
+- Lazy Model Loading
+- Confidence Estimation
+- Probability Scores
+- Batch Prediction
+- Reusable Inference Engine
 
 ### Software Engineering
 
-* Modular Project Structure
-* Configuration Management
-* Model Versioning
-* Evaluation Pipeline
-* Production-Oriented Code Organization
+- Modular Project Structure
+- Configuration Management
+- Model Versioning
+- Evaluation Pipeline
+- Production-Oriented Code Organization
 
 ---
 
@@ -74,34 +74,34 @@ The long-term objective is to build an intelligent platform capable of detecting
 
 ### ✅ Version 1.0.0
 
-* English fake news detection
-* Modular ML pipeline
-* Model training
-* Evaluation
-* Inference engine
-* Batch prediction
+- English fake news detection
+- Modular ML pipeline
+- Model training
+- Evaluation
+- Inference engine
+- Batch prediction
 
 ### 🔄 Version 1.1.0
 
-* FastAPI backend
-* REST API
-* Interactive API documentation
+- FastAPI backend
+- REST API
+- Interactive API documentation
 
 ### 🔄 Version 1.2.0
 
-* Streamlit web application
-* User-friendly interface
-* Confidence visualization
-* CSV upload support
+- Streamlit web application
+- User-friendly interface
+- Confidence visualization
+- CSV upload support
 
 ### 🔄 Version 2.0.0
 
-* Multilingual model
-* English
-* Hindi
-* Swahili
-* Vietnamese
-* Indonesian
+- Multilingual model
+- English
+- Hindi
+- Swahili
+- Vietnamese
+- Indonesian
 
 ---
 
@@ -124,3 +124,25 @@ The core machine learning engine has been completed successfully, and developmen
 ---
 
 **More features, documentation, architecture diagrams, deployment guides, and demonstrations will be added in upcoming releases.**
+
+## REST API
+
+Run:
+
+```bash
+uvicorn app.api.main:app --reload
+```
+
+Open:
+
+http://localhost:8000/docs
+
+Endpoints
+
+GET /
+
+GET /api/v1/health
+
+GET /api/v1/info
+
+POST /api/v1/predict
