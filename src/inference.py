@@ -2,13 +2,18 @@
 Inference module for the Multilingual Fake News Detection system.
 """
 
+HF_REPO = "desirekkorda/multilingual-fake-news-xlmr"
+MODEL_FILENAME = "best_xlmr.pt"
+
+import os
+from huggingface_hub import hf_hub_download
+
 import torch
 from transformers import AutoTokenizer
 
 from src.model import XLMRClassifier
 from src.preprocessing import clean_text
 from src.config import *
-
 
 device = torch.device(
     "cuda" if torch.cuda.is_available() else "cpu"
@@ -39,8 +44,31 @@ def load_model():
 
         _model = XLMRClassifier()
 
+        # checkpoint = torch.load(
+        #     f"{MODEL_DIR}/best_xlmr.pt",
+        #     map_location=device
+        # )
+
+        local_model = os.path.join(
+            MODEL_DIR,
+            MODEL_FILENAME
+        )
+
+        if os.path.exists(local_model):
+
+            model_path = local_model
+
+        else:
+
+            print("📥 Downloading model from Hugging Face Hub...")
+
+            model_path = hf_hub_download(
+                repo_id=HF_REPO,
+                filename=MODEL_FILENAME
+            )
+
         checkpoint = torch.load(
-            f"{MODEL_DIR}/best_xlmr.pt",
+            model_path,
             map_location=device
         )
 
@@ -51,6 +79,21 @@ def load_model():
         _model.eval()
 
         print("Model ready.")
+
+        if os.path.exists(local_model):
+
+            print("📂 Using local model.")
+
+            model_path = local_model
+
+        else:
+
+            print("📥 Downloading model from Hugging Face Hub...")
+
+            model_path = hf_hub_download(
+                repo_id=HF_REPO,
+                filename=MODEL_FILENAME
+            )
 
     return _model, _tokenizer
     
