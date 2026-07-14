@@ -69,7 +69,7 @@ def load_model():
 
         checkpoint = torch.load(
             model_path,
-            map_location=device
+            map_location="cpu"
         )
 
         _model.load_state_dict(checkpoint)

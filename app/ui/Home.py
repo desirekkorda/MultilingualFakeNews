@@ -161,14 +161,13 @@ if analyze:
     else:
 
         with st.spinner("Analyzing..."):
-
-            start = time.time()
-
-            st.session_state.result = predict_news(news_text)
-
-            elapsed = time.time() - start
-
-            st.session_state.elapsed = elapsed
+            try:
+                start = time.time()
+                st.session_state.result = predict_news(news_text)
+                st.session_state.elapsed = time.time() - start
+            except Exception as e:
+                st.exception(e)
+                raise
 
 # Display Prediction
 if st.session_state.result is not None:
