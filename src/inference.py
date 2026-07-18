@@ -3,7 +3,7 @@ Inference module for the Multilingual Fake News Detection system.
 """
 
 HF_REPO = "desirekkorda/multilingual-fake-news-xlmr"
-MODEL_FILENAME = "best_xlmr.pt"
+MODEL_FILENAME = "classifier_head.pt"
 
 import os
 from huggingface_hub import hf_hub_download
@@ -44,11 +44,6 @@ def load_model():
 
         _model = XLMRClassifier()
 
-        # checkpoint = torch.load(
-        #     f"{MODEL_DIR}/best_xlmr.pt",
-        #     map_location=device
-        # )
-
         local_model = os.path.join(
             MODEL_DIR,
             MODEL_FILENAME
@@ -67,15 +62,13 @@ def load_model():
                 filename=MODEL_FILENAME
             )
 
-        checkpoint = torch.load(
+        head_state = torch.load(
             model_path,
-            map_location="cpu"
+            map_location=device
         )
 
-        _model.load_state_dict(checkpoint)
-
+        _model.fc.load_state_dict(head_state)
         _model.to(device)
-
         _model.eval()
 
         print("Model ready.")
