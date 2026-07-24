@@ -12,7 +12,7 @@ if str(PROJECT_ROOT) not in sys.path:
 # Import inference engeine
 import streamlit as st
 
-from src.inference import predict_news
+from app.ui.api_client import predict_news_api
 
 from app.ui.utils import show_footer
 from app.ui.components import section_title
@@ -163,7 +163,7 @@ if analyze:
         with st.spinner("Analyzing..."):
             try:
                 start = time.time()
-                st.session_state.result = predict_news(news_text)
+                st.session_state.result = predict_news_api(news_text)
                 st.session_state.elapsed = time.time() - start
             except Exception as e:
                 st.exception(e)

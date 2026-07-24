@@ -20,3 +20,5 @@ python-dotenv>=1.0.0
 huggingface_hub>=0.33.0
 
 torchvision>=0.15.0
+
+requests
