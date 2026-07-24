@@ -2,8 +2,14 @@
 Inference module for the Multilingual Fake News Detection system.
 """
 
-HF_REPO = "desirekkorda/multilingual-fake-news-xlmr"
-MODEL_FILENAME = "classifier_head.pt"
+import os
+
+HF_REPO = os.getenv(
+    "HF_REPO",
+    "desirekkorda/multilingual-fake-news-xlmr"
+)
+
+MODEL_FILENAME = "best_xlmr.pt"
 
 import os
 from huggingface_hub import hf_hub_download
@@ -22,7 +28,6 @@ device = torch.device(
 # Cached objects
 _model = None
 _tokenizer = None
-
 
 def load_model():
     """
@@ -71,22 +76,7 @@ def load_model():
         _model.to(device)
         _model.eval()
 
-        print("Model ready.")
-
-        if os.path.exists(local_model):
-
-            print("📂 Using local model.")
-
-            model_path = local_model
-
-        else:
-
-            print("📥 Downloading model from Hugging Face Hub...")
-
-            model_path = hf_hub_download(
-                repo_id=HF_REPO,
-                filename=MODEL_FILENAME
-            )
+        print("✅ Model ready.")
 
     return _model, _tokenizer
     
@@ -157,9 +147,7 @@ def predict_news(text):
         "model_version": "1.0.0"
     }
     
-    
 # Adding batch prediction
-
 import pandas as pd
 
 def predict_dataframe(df, text_column="text"):
