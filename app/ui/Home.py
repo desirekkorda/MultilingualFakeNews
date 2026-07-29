@@ -116,17 +116,17 @@ with logo_col:
         st.image(str(LOGO), width=120)
 
 with title_col:
-    st.title("Multilingual Fake News Detection")
+    st.title("Multilingual Fake News Detector")
     st.caption("AI-powered multilingual fake news detection using XLM-RoBERTa")
 
-st.markdown(
-    """
-    Detect whether a news article is more likely to be **Legitimate** or **Fake**
-    using a fine-tuned multilingual transformer model.
+# st.markdown(
+#     """
+#     Detect whether a news article is more likely to be **Legitimate** or **Fake**
+#     using a fine-tuned multilingual transformer model.
 
-    Simply paste a news article below and click **Analyze Article**.
-    """
-)
+#     Simply paste a news article below and click **Analyze Article**.
+#     """
+# )
 st.markdown("---")
 
 # Metrics Row
@@ -151,7 +151,7 @@ if "news_text" not in st.session_state:
 
 news_text = st.text_area("Paste a news article", height=200, key="news_text")
 
-analyze = st.button("🔍 Analyze Article", use_container_width=True, type="primary")
+analyze = st.button("🔍 Analyze Article", use_container_width=True, type="secondary")
 
 if analyze:
     if not news_text.strip():
