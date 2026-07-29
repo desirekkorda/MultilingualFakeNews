@@ -84,3 +84,6 @@ temp/
 
 .env
 .env.*
+
+safetensors
+.safetensors

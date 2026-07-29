@@ -3,12 +3,6 @@ import time
 import sys
 from pathlib import Path
 
-# Project root
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
 # Import inference engeine
 import streamlit as st
 
@@ -18,17 +12,52 @@ from app.ui.utils import show_footer
 from app.ui.components import section_title
 from pathlib import Path
 
+from optimum.onnxruntime import ORTModelForSequenceClassification
+from transformers import AutoTokenizer, pipeline
+
+# Project root
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 # Welcome
 
 LOGO = PROJECT_ROOT  / "assets" / "images" / "app-logo.png"
 ICON = PROJECT_ROOT  / "assets" / "images" / "favicon.png"
 
 st.set_page_config(
-    page_title="Multilingual Fake News Detection",
+    page_title="Multilingual Fake News Detector",
     page_icon=str(ICON),
     layout="wide"
 )
 
+# Today
+st.title("📰 Multilingual Fake News Detector")
+st.write("Lightweight ONNX model running live on Streamlit Cloud.")
+
+MODEL_ID = "desirekkorda/multilingual-fake-news-xlmr-v2"
+
+@st.cache_resource
+def load_onnx_pipeline():
+    # Load tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
+    
+    # Load the 279MB quantized ONNX model
+    model = ORTModelForSequenceClassification.from_pretrained(
+        MODEL_ID, 
+        file_name="model_quantized.onnx"
+    )
+    
+    # Create text classification pipeline backed by ONNX Runtime
+    return pipeline("text-classification", model=model, tokenizer=tokenizer)
+
+# Load model pipeline with caching
+with st.spinner("Loading model into memory..."):
+    classifier = load_onnx_pipeline()
+
+
+    
 # Sidebar
 with st.sidebar:
 
@@ -51,9 +80,9 @@ with st.sidebar:
     st.subheader("📊 Model Performance")
 
     st.metric("Accuracy", "83.9%")
-    st.metric("Precision", "86.8%")
-    st.metric("Recall", "79.3%")
-    st.metric("F1 Score", "82.9%")
+    st.metric("Precision", "89.8%")
+    st.metric("Recall", "75.9%")
+    st.metric("F1 Score", "82.2%")
 
     st.markdown("---")
 
