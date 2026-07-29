@@ -1,132 +1,123 @@
-
-import time
 import sys
+import time
 from pathlib import Path
 
-# Import inference engeine
 import streamlit as st
-
-from app.ui.api_client import predict_news_api
-
-from app.ui.utils import show_footer
-from app.ui.components import section_title
-from pathlib import Path
-
 from optimum.onnxruntime import ORTModelForSequenceClassification
 from transformers import AutoTokenizer, pipeline
 
-# Project root
+# -----------------------------------------------------------------------------
+# 1. Page Configuration (MUST BE FIRST STREAMLIT CALL)
+# -----------------------------------------------------------------------------
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-# Welcome
-
-LOGO = PROJECT_ROOT  / "assets" / "images" / "app-logo.png"
-ICON = PROJECT_ROOT  / "assets" / "images" / "favicon.png"
+LOGO = PROJECT_ROOT / "assets" / "images" / "app-logo.png"
+ICON = PROJECT_ROOT / "assets" / "images" / "favicon.png"
 
 st.set_page_config(
     page_title="Multilingual Fake News Detector",
-    page_icon=str(ICON),
-    layout="wide"
+    page_icon=str(ICON) if ICON.exists() else "📰",
+    layout="wide",
 )
 
-# Today
-st.title("📰 Multilingual Fake News Detector")
-st.write("Lightweight ONNX model running live on Streamlit Cloud.")
+# Optional UI helpers from your app folder
+try:
+    from app.ui.components import section_title
+    from app.ui.utils import show_footer
+except ImportError:
 
+    def section_title(text):
+        st.subheader(text)
+
+    def show_footer():
+        pass
+
+
+# -----------------------------------------------------------------------------
+# 2. Model Loading
+# -----------------------------------------------------------------------------
 MODEL_ID = "desirekkorda/multilingual-fake-news-xlmr-v2"
+
 
 @st.cache_resource
 def load_onnx_pipeline():
-    # Load tokenizer
     tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
-    
-    # Load the 279MB quantized ONNX model
     model = ORTModelForSequenceClassification.from_pretrained(
-        MODEL_ID, 
-        file_name="model_quantized.onnx"
+        MODEL_ID, file_name="model_quantized.onnx"
     )
-    
-    # Create text classification pipeline backed by ONNX Runtime
-    return pipeline("text-classification", model=model, tokenizer=tokenizer)
+    return pipeline(
+        "text-classification",
+        model=model,
+        tokenizer=tokenizer,
+        top_k=None,  # Return all class probabilities
+    )
 
-# Load model pipeline with caching
-with st.spinner("Loading model into memory..."):
+
+with st.spinner("Loading lightweight ONNX model into memory..."):
     classifier = load_onnx_pipeline()
 
 
-    
-# Sidebar
+# -----------------------------------------------------------------------------
+# 3. Sidebar UI
+# -----------------------------------------------------------------------------
 with st.sidebar:
-
-    st.image(LOGO, width=200)
+    if LOGO.exists():
+        st.image(str(LOGO), width=200)
 
     st.title("Fake News Detector")
-
     st.markdown("---")
 
     st.subheader("📌 About")
-
     st.write(
-        "This application detects whether a news article "
-        "is more likely to be Legitimate or Fake using "
-        "a fine-tuned XLM-RoBERTa model."
+        "This application detects whether a news article is more likely to be "
+        "Legitimate or Fake using a fine-tuned XLM-RoBERTa model."
     )
 
     st.markdown("---")
-
     st.subheader("📊 Model Performance")
-
     st.metric("Accuracy", "83.9%")
     st.metric("Precision", "89.8%")
     st.metric("Recall", "75.9%")
     st.metric("F1 Score", "82.2%")
 
     st.markdown("---")
-
     st.subheader("🌍 Languages")
-
     st.success("English")
-
     st.caption("Coming Soon")
+    st.write("🚧 Swahili | 🚧 Hindi | 🚧 Indonesian | 🚧 Vietnamese")
 
-    st.write("🚧 Swahili")
-    st.write("🚧 Hindi")
-    st.write("🚧 Indonesian")
-    st.write("🚧 Vietnamese")
-
-    # Try example
+    st.markdown("---")
     st.subheader("Try an Example")
-    legit_example = (
-        "NASA scientists confirmed new evidence of "
-        "water beneath the Martian surface."
-    )
 
+    legit_example = "NASA scientists confirmed new evidence of water beneath the Martian surface."
     fake_example = (
         "Rebounding Revenge! Selena Gomez And Orlando Bloom Are Hooking Up "
-        "To Make Miranda Kerr And Justin Bieber Jealous?! This weekend wasn't " 
-        "the first time we saw Selena Gomez and Orlando Bloom together, "
-        "so can you blame us for speculating???!"
+        "To Make Miranda Kerr And Justin Bieber Jealous?!"
     )
 
     if st.button("Load Legit Example"):
         st.session_state.news_text = legit_example
+        st.rerun()
 
     if st.button("Load Fake Example"):
         st.session_state.news_text = fake_example
+        st.rerun()
 
+
+# -----------------------------------------------------------------------------
+# 4. Main Header
+# -----------------------------------------------------------------------------
 logo_col, title_col = st.columns([1, 6])
 
 with logo_col:
-    st.image(LOGO, width=250)
+    if LOGO.exists():
+        st.image(str(LOGO), width=120)
 
 with title_col:
     st.title("Multilingual Fake News Detection")
-    st.caption(
-        "AI-powered multilingual fake news detection using XLM-RoBERTa"
-    )
+    st.caption("AI-powered multilingual fake news detection using XLM-RoBERTa")
 
 st.markdown(
     """
@@ -136,128 +127,103 @@ st.markdown(
     Simply paste a news article below and click **Analyze Article**.
     """
 )
-
 st.markdown("---")
 
 # Metrics Row
 col1, col2, col3 = st.columns(3)
-
 with col1:
-    st.metric("🤖 Model", "XLM-R Base")
-
+    st.metric("🤖 Model", "XLM-R Base (ONNX)")
 with col2:
     st.metric("🌍 Languages", "1")
-
 with col3:
     st.metric("🚀 Version", "v1.2.0")
 
-# Add text input
+st.markdown("---")
+
+
+# -----------------------------------------------------------------------------
+# 5. User Input & Inference
+# -----------------------------------------------------------------------------
 section_title("Analyze Article")
 
-# news_text = st.text_area(
-#     "Paste a news article",
-#     height=250,
-#     placeholder="Paste the news article here..."
-# )
-
-
-# Text box
 if "news_text" not in st.session_state:
     st.session_state.news_text = ""
 
-news_text = st.text_area(
-    "Paste a news article",
-    height=250,
-    key="news_text"
-)
+news_text = st.text_area("Paste a news article", height=200, key="news_text")
 
-# Analyze button
-if "result" not in st.session_state:
-    st.session_state.result = None
-# result = None
-analyze = st.button(
-    "🔍 Analyze Article",
-    use_container_width=True
-)
+analyze = st.button("🔍 Analyze Article", use_container_width=True, type="primary")
 
-# Call the model
 if analyze:
-
-    if news_text.strip() == "":
-
+    if not news_text.strip():
         st.warning("Please enter some news text.")
-
     else:
-
-        with st.spinner("Analyzing..."):
+        with st.spinner("Analyzing text..."):
             try:
-                start = time.time()
-                st.session_state.result = predict_news_api(news_text)
-                st.session_state.elapsed = time.time() - start
+                start_time = time.time()
+
+                # Run inference via loaded ONNX model pipeline
+                raw_outputs = classifier(news_text)[0]
+                elapsed = time.time() - start_time
+
+                # Map outputs (Assuming LABEL_0 = Legit, LABEL_1 = Fake or similar)
+                probs = {item["label"]: item["score"] for item in raw_outputs}
+
+                # Normalize label names if pipeline uses LABEL_0 / LABEL_1
+                legit_prob = probs.get("Legit", probs.get("LABEL_0", 0.0))
+                fake_prob = probs.get("Fake", probs.get("LABEL_1", 0.0))
+
+                prediction = "Legit" if legit_prob >= fake_prob else "Fake"
+                confidence = max(legit_prob, fake_prob)
+
+                st.session_state.result = {
+                    "prediction": prediction,
+                    "confidence": confidence,
+                    "probabilities": {"Legit": legit_prob, "Fake": fake_prob},
+                    "elapsed": elapsed,
+                    "model": "XLM-RoBERTa (INT8 ONNX)",
+                    "model_version": "1.2.0",
+                }
+
             except Exception as e:
-                st.exception(e)
-                raise
+                st.error(f"Inference Error: {e}")
 
-# Display Prediction
-if st.session_state.result is not None:
 
-    result = st.session_state.result
-
+# -----------------------------------------------------------------------------
+# 6. Display Prediction Results
+# -----------------------------------------------------------------------------
+if st.session_state.get("result") is not None:
+    res = st.session_state.result
     st.divider()
-
     section_title("Analysis Result")
 
-# Result Card
-    if result["prediction"] == "Legit":
-
-        st.success("🟢 Analysis Complete")
-
+    if res["prediction"] == "Legit":
+        st.success("🟢 Likely Legitimate News")
         st.markdown(
-            """
-            ### Likely Legitimate News
-
-            The article appears consistent with patterns learned
-            from legitimate news articles.
-            """
+            "The article appears consistent with patterns learned from legitimate news articles."
         )
-
     else:
-        st.error("🔴 Analysis Complete")
-
+        st.error("🔴 Likely Fake News")
         st.markdown(
-            """
-            ### Likely Fake News
-
-            The article contains patterns commonly associated
-            with misinformation.
-            """
+            "The article contains patterns commonly associated with misinformation."
         )
 
-    st.write(
-    f"Model Confidence: "
-    f"**{result['confidence']:.2%}**"
-    )
-
-#Confidencs Display
+    # Probabilities and Metrics Display
     left, right = st.columns([3, 2])
-    
+
     with left:
         st.subheader("Class Probabilities")
-        
-        st.write(f"**Legit:** {result['probabilities']['Legit']:.2%}")
-        st.progress(result["probabilities"]["Legit"])
-        
-        st.write(f"**Fake:** {result['probabilities']['Fake']:.2%}")
-        st.progress(result["probabilities"]["Fake"])
+        st.write(f"**Legit:** {res['probabilities']['Legit']:.2%}")
+        st.progress(res["probabilities"]["Legit"])
+
+        st.write(f"**Fake:** {res['probabilities']['Fake']:.2%}")
+        st.progress(res["probabilities"]["Fake"])
 
     with right:
         st.subheader("Performance Metrics")
-        st.metric("Model Confidence", f"{result['confidence']:.2%}")
-        st.metric("Inference Time", f"{st.session_state.elapsed:.2f} sec")
-        
+        st.metric("Model Confidence", f"{res['confidence']:.2%}")
+        st.metric("Inference Time", f"{res['elapsed']:.2f} sec")
+
     with st.expander("Technical Metadata"):
-        st.write(f"**Model Type:** {result['model']}")
-        st.write(f"**Engine Version:** {result['model_version']}")
-        st.json(result)
+        st.json(res)
 
 show_footer()
