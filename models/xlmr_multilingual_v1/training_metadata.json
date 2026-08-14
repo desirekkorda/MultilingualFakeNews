@@ -1,0 +1,17 @@
+{
+  "model": "xlm-roberta-base",
+  "max_length": 384,
+  "batch_size": 8,
+  "learning_rate": 2e-05,
+  "epochs": 8,
+  "best_epoch": 7,
+  "best_validation_f1": 0.8907922912205567,
+  "id2label": {
+    "0": "Legit",
+    "1": "Fake"
+  },
+  "label2id": {
+    "Legit": 0,
+    "Fake": 1
+  }
+}

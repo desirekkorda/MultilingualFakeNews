@@ -44,3 +44,10 @@ def info():
         "model": "XLM-RoBERTa",
         "version": "1.1.0"
     }
+
+@router.get("/health", status_code=200)
+def health():
+    return {
+        "status": "healthy",
+        "service": "Multilingual Fake News Detection API"
+    }

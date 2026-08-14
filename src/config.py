@@ -58,3 +58,17 @@ ENGLISH_TEST_PATH = (
     f"{ENGLISH_DIR}/Test/"
     "test_English_Data_Complete_FakeNews.txt"
 )
+
+# ==========================================
+# MULTILINGUAL PATHS
+# ==========================================
+
+LANGUAGES = ["English", "Hindi", "Indonesian", "Swahili", "Vietnamese"]
+
+LANGUAGE_DIRS = {
+    lang: f"{DATASET_ROOT}/{lang}" for lang in LANGUAGES
+}
+
+# Example path resolver helper
+def get_language_file(lang: str, split: str = "Train"):
+    return f"{DATASET_ROOT}/{lang}/{split}/"

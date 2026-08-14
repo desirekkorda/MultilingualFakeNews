@@ -1,0 +1,28 @@
+{
+  "model_name": "xlm-roberta-base",
+  "model_version": "v3",
+  "model_source": "desirekkorda/multilingual-fake-news-xlmr-v3",
+  "model_format": "ONNX",
+  "quantization": "dynamic INT8",
+  "max_length": 384,
+  "classes": {
+    "0": "Legit",
+    "1": "Fake"
+  },
+  "languages": [
+    "English",
+    "Hindi",
+    "Indonesian",
+    "Swahili",
+    "Vietnamese"
+  ],
+  "test_metrics": {
+    "accuracy": 0.9202,
+    "precision": 0.9163,
+    "recall": 0.9244,
+    "f1": 0.9204
+  },
+  "model_size_mb": 265.91,
+  "fp32_onnx_size_mb": 1060.87,
+  "size_reduction_percent": 74.94
+}

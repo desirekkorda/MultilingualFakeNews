@@ -1,137 +1,201 @@
 """
 Inference module for the Multilingual Fake News Detection system.
+
+Production model:
+    XLM-RoBERTa-base fine-tuned on five TALLIP languages
+    and deployed as a quantized ONNX model.
 """
 
 import os
+from typing import Any
+
+import numpy as np
+import pandas as pd
+
+from optimum.onnxruntime import ORTModelForSequenceClassification
+from transformers import AutoTokenizer
+
+
+# -------------------------------------------------------------------------
+# Configuration
+# -------------------------------------------------------------------------
 
 HF_REPO = os.getenv(
     "HF_REPO",
-    "desirekkorda/multilingual-fake-news-xlmr"
+    "desirekkorda/multilingual-fake-news-xlmr-v3"
 )
 
-MODEL_FILENAME = "best_xlmr.pt"
-
-import os
-from huggingface_hub import hf_hub_download
-
-import torch
-from transformers import AutoTokenizer
-
-from src.model import XLMRClassifier
-from src.preprocessing import clean_text
-from src.config import *
-
-device = torch.device(
-    "cuda" if torch.cuda.is_available() else "cpu"
+MODEL_FILENAME = os.getenv(
+    "MODEL_FILENAME",
+    "model_quantized.onnx"
 )
 
-# Cached objects
+MAX_LEN = int(
+    os.getenv("MAX_LEN", "384")
+)
+
+MODEL_VERSION = os.getenv(
+    "MODEL_VERSION",
+    "3.0.0"
+)
+
+SUPPORTED_LANGUAGES = [
+    "English",
+    "Hindi",
+    "Indonesian",
+    "Swahili",
+    "Vietnamese",
+]
+
+ID2LABEL = {
+    0: "Legit",
+    1: "Fake",
+}
+
+LABEL2ID = {
+    "Legit": 0,
+    "Fake": 1,
+}
+
+
+# -------------------------------------------------------------------------
+# Cached model objects
+# -------------------------------------------------------------------------
+
 _model = None
 _tokenizer = None
 
+
 def load_model():
     """
-    Load the tokenizer and trained model once.
+    Load the Hugging Face tokenizer and quantized ONNX model once.
+
+    Returns
+    -------
+    tuple
+        (model, tokenizer)
     """
 
     global _model
     global _tokenizer
 
-    if _model is None:
+    if _model is None or _tokenizer is None:
 
-        print("Loading tokenizer...")
+        print("Loading multilingual tokenizer...")
 
         _tokenizer = AutoTokenizer.from_pretrained(
-            MODEL_NAME
+            HF_REPO
         )
 
-        print("Loading trained model...")
+        print("Loading quantized ONNX model...")
 
-        _model = XLMRClassifier()
-
-        local_model = os.path.join(
-            MODEL_DIR,
-            MODEL_FILENAME
+        _model = ORTModelForSequenceClassification.from_pretrained(
+            HF_REPO,
+            file_name=MODEL_FILENAME
         )
 
-        if os.path.exists(local_model):
+        # Preserve our explicit label mapping.
+        _model.config.id2label = ID2LABEL
+        _model.config.label2id = LABEL2ID
 
-            model_path = local_model
-
-        else:
-
-            print("📥 Downloading model from Hugging Face Hub...")
-
-            model_path = hf_hub_download(
-                repo_id=HF_REPO,
-                filename=MODEL_FILENAME
-            )
-
-        head_state = torch.load(
-            model_path,
-            map_location=device
-        )
-
-        _model.fc.load_state_dict(head_state)
-        _model.to(device)
-        _model.eval()
-
-        print("✅ Model ready.")
+        print("Multilingual ONNX model ready.")
 
     return _model, _tokenizer
-    
-import torch.nn.functional as F
 
-# News Prediction
-def predict_news(text):
+
+# -------------------------------------------------------------------------
+# Prediction helper
+# -------------------------------------------------------------------------
+
+def _softmax(logits: np.ndarray) -> np.ndarray:
+    """
+    Numerically stable softmax.
+    """
+
+    logits = np.asarray(logits, dtype=np.float32)
+
+    shifted = logits - np.max(
+        logits,
+        axis=-1,
+        keepdims=True
+    )
+
+    exp_values = np.exp(shifted)
+
+    return exp_values / np.sum(
+        exp_values,
+        axis=-1,
+        keepdims=True
+    )
+
+
+# -------------------------------------------------------------------------
+# News prediction
+# -------------------------------------------------------------------------
+
+def predict_news(text: str) -> dict[str, Any]:
     """
     Predict whether a news article is Legit or Fake.
 
     Parameters
     ----------
     text : str
+        News article text.
 
     Returns
     -------
     dict
+        Prediction, confidence, probabilities,
+        and model metadata.
     """
+
+    if not isinstance(text, str):
+        raise TypeError("text must be a string.")
+
+    text = text.strip()
+
+    if not text:
+        raise ValueError("News text cannot be empty.")
 
     model, tokenizer = load_model()
 
-    # Clean text
-    text = clean_text(text)
+    # IMPORTANT:
+    # We do not call the previous clean_text() function here.
+    # The multilingual model was trained directly on the standardized
+    # TALLIP text representation, so inference should use the same
+    # representation rather than introducing a new preprocessing step.
 
-    # Tokenize
     encoding = tokenizer(
         text,
         max_length=MAX_LEN,
         padding="max_length",
         truncation=True,
-        return_tensors="pt"
+        return_attention_mask=True,
+        return_tensors="np",
     )
 
-    input_ids = encoding["input_ids"].to(device)
-    attention_mask = encoding["attention_mask"].to(device)
+    outputs = model(
+        input_ids=encoding["input_ids"],
+        attention_mask=encoding["attention_mask"],
+    )
 
-    # Prediction
-    with torch.no_grad():
+    probabilities = _softmax(outputs.logits)
 
-        logits = model(
-            input_ids=input_ids,
-            attention_mask=attention_mask
-        )
+    prediction = int(
+        np.argmax(probabilities, axis=1)[0]
+    )
 
-        probabilities = F.softmax(
-            logits,
-            dim=1
-        )
+    legit_probability = float(
+        probabilities[0][0]
+    )
 
-        prediction = torch.argmax(
-            probabilities,
-            dim=1
-        ).item()
+    fake_probability = float(
+        probabilities[0][1]
+    )
 
-        confidence = probabilities[0][prediction].item()
+    confidence = float(
+        probabilities[0][prediction]
+    )
 
     return {
         "prediction": ID2LABEL[prediction],
@@ -139,44 +203,55 @@ def predict_news(text):
         "confidence": round(confidence, 4),
         "is_confident": confidence >= 0.80,
         "probabilities": {
-            "Legit": round(probabilities[0][0].item(), 4),
-            "Fake": round(probabilities[0][1].item(), 4)
+            "Legit": round(legit_probability, 4),
+            "Fake": round(fake_probability, 4),
         },
-        "model": MODEL_NAME,
+        "model": "XLM-RoBERTa-base",
+        "model_format": "Quantized ONNX",
+        "quantization": "Dynamic INT8",
+        "model_version": MODEL_VERSION,
         "max_length": MAX_LEN,
-        "model_version": "1.0.0"
+        "languages": SUPPORTED_LANGUAGES,
     }
-    
-# Adding batch prediction
-import pandas as pd
 
-def predict_dataframe(df, text_column="text"):
+
+# -------------------------------------------------------------------------
+# Batch prediction
+# -------------------------------------------------------------------------
+
+def predict_dataframe(
+    df: pd.DataFrame,
+    text_column: str = "text",
+) -> pd.DataFrame:
     """
     Predict an entire DataFrame of news articles.
-
-    Parameters
-    ----------
-    df : pandas.DataFrame
-    text_column : str
-
-    Returns
-    -------
-    pandas.DataFrame
     """
 
-    df = df.copy()
+    if text_column not in df.columns:
+        raise ValueError(
+            f"Column '{text_column}' not found in DataFrame."
+        )
+
+    result_df = df.copy()
 
     predictions = []
     confidences = []
 
-    for text in df[text_column]:
+    for text in result_df[text_column]:
 
-        result = predict_news(text)
+        result = predict_news(
+            str(text)
+        )
 
-        predictions.append(result["prediction"])
-        confidences.append(result["confidence"])
+        predictions.append(
+            result["prediction"]
+        )
 
-    df["Prediction"] = predictions
-    df["Confidence"] = confidences
+        confidences.append(
+            result["confidence"]
+        )
 
-    return df
+    result_df["Prediction"] = predictions
+    result_df["Confidence"] = confidences
+
+    return result_df

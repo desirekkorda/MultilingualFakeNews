@@ -1,0 +1,74 @@
+{
+  "overall_test": {
+    "accuracy": 0.9090909090909091,
+    "precision": 0.8931623931623932,
+    "recall": 0.9288888888888889,
+    "f1": 0.9106753812636166
+  },
+  "confusion_matrix": [
+    [
+      201,
+      25
+    ],
+    [
+      16,
+      209
+    ]
+  ],
+  "language_results": [
+    {
+      "Language": "English",
+      "Samples": 59,
+      "Accuracy": 0.9491525423728814,
+      "Precision": 0.9642857142857143,
+      "Recall": 0.9310344827586207,
+      "F1": 0.9473684210526315
+    },
+    {
+      "Language": "Hindi",
+      "Samples": 98,
+      "Accuracy": 0.7959183673469388,
+      "Precision": 0.7457627118644068,
+      "Recall": 0.8979591836734694,
+      "F1": 0.8148148148148148
+    },
+    {
+      "Language": "Indonesian",
+      "Samples": 98,
+      "Accuracy": 0.9183673469387755,
+      "Precision": 0.9555555555555556,
+      "Recall": 0.8775510204081632,
+      "F1": 0.9148936170212766
+    },
+    {
+      "Language": "Swahili",
+      "Samples": 98,
+      "Accuracy": 0.9183673469387755,
+      "Precision": 0.9019607843137255,
+      "Recall": 0.9387755102040817,
+      "F1": 0.92
+    },
+    {
+      "Language": "Vietnamese",
+      "Samples": 98,
+      "Accuracy": 0.9795918367346939,
+      "Precision": 0.9607843137254902,
+      "Recall": 1.0,
+      "F1": 0.98
+    }
+  ],
+  "best_epoch": 7,
+  "best_validation_f1": 0.8907922912205567,
+  "model": "xlm-roberta-base",
+  "max_length": 384,
+  "batch_size": 8,
+  "learning_rate": 2e-05,
+  "epochs": 8,
+  "languages": [
+    "English",
+    "Hindi",
+    "Indonesian",
+    "Swahili",
+    "Vietnamese"
+  ]
+}

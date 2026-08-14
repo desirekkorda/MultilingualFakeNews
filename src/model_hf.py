@@ -24,7 +24,8 @@ class XLMRMeanPoolingClassifier(
             add_pooling_layer=False
         )
 
-        self.dropout = nn.Dropout(0.3)
+        dropout_prob = getattr(config, "classifier_dropout", 0.3)
+        self.dropout = nn.Dropout(dropout_prob)
 
         self.classifier = nn.Linear(
             config.hidden_size,

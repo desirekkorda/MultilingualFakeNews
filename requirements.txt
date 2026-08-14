@@ -24,3 +24,5 @@ torchvision>=0.15.0
 requests
 
 optimum[onnxruntime]
+
+onnxruntime
