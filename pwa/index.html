@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="theme-color"
+        content="#0b3d91"
+    >
+
+    <meta
+        name="description"
+        content="Multilingual AI-powered fake news detection using XLM-RoBERTa."
+    >
+
+    <meta
+        name="mobile-web-app-capable"
+        content="yes"
+    >
+
+    <meta
+        name="apple-mobile-web-app-capable"
+        content="yes"
+    >
+
+    <meta
+        name="apple-mobile-web-app-status-bar-style"
+        content="black-translucent"
+    >
+
+    <meta
+        name="apple-mobile-web-app-title"
+        content="Fake News Detector"
+    >
+
+    <link
+        rel="manifest"
+        href="./manifest.webmanifest"
+    >
+
+    <link
+        rel="icon"
+        type="image/png"
+        sizes="192x192"
+        href="./icons/icon-192.png"
+    >
+
+    <link
+        rel="apple-touch-icon"
+        href="./icons/icon-192.png"
+    >
+
+    <link
+        rel="stylesheet"
+        href="./styles.css"
+    >
+
+    <title>Multilingual Fake News Detector</title>
+</head>
+
+<body>
+
+<div class="app-shell">
+
+    <!-- Header -->
+    <header class="app-header">
+
+        <div class="brand">
+
+            <img
+                src="./icons/icon-192.png"
+                alt="Multilingual Fake News Detector"
+                class="brand-logo"
+            >
+
+            <div>
+                <h1>Multilingual Fake News Detector</h1>
+
+                <p>
+                    AI-powered fake news detection
+                    using XLM-RoBERTa
+                </p>
+            </div>
+
+        </div>
+
+        <button
+            id="installButton"
+            class="install-button hidden"
+            type="button"
+        >
+            Install App
+        </button>
+
+    </header>
+
+
+    <!-- Main -->
+    <main class="main-content">
+
+        <section class="hero-card">
+
+            <div class="hero-content">
+
+                <span class="eyebrow">
+                    AI-POWERED NEWS ANALYSIS
+                </span>
+
+                <h2>
+                    Analyze news across five languages.
+                </h2>
+
+                <p>
+                    Submit a news article and receive an AI-generated
+                    classification based on patterns learned from
+                    legitimate and fake news.
+                </p>
+
+                <div class="language-list">
+
+                    <span>English</span>
+                    <span>Hindi</span>
+                    <span>Indonesian</span>
+                    <span>Swahili</span>
+                    <span>Vietnamese</span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- Analyzer -->
+        <section class="analyzer-card">
+
+            <div class="section-heading">
+
+                <div>
+                    <span class="section-label">
+                        ANALYSIS
+                    </span>
+
+                    <h2>Analyze Article</h2>
+                </div>
+
+                <span
+                    id="connectionStatus"
+                    class="status status-checking"
+                >
+                    Checking API...
+                </span>
+
+            </div>
+
+
+            <label
+                for="newsText"
+                class="input-label"
+            >
+                Paste a news article
+            </label>
+
+            <textarea
+                id="newsText"
+                rows="10"
+                maxlength="50000"
+                placeholder="Paste the article text here..."
+                autocomplete="off"
+                spellcheck="true"
+            ></textarea>
+
+
+            <div class="input-footer">
+
+                <span id="characterCount">
+                    0 characters
+                </span>
+
+                <button
+                    id="clearButton"
+                    class="secondary-button"
+                    type="button"
+                >
+                    Clear
+                </button>
+
+            </div>
+
+
+            <button
+                id="analyzeButton"
+                class="analyze-button"
+                type="button"
+            >
+                <span id="analyzeText">
+                    Analyze Article
+                </span>
+
+                <span
+                    id="loadingSpinner"
+                    class="spinner hidden"
+                ></span>
+            </button>
+
+
+            <div
+                id="errorMessage"
+                class="error-message hidden"
+                role="alert"
+            ></div>
+
+        </section>
+
+
+        <!-- Result -->
+        <section
+            id="resultSection"
+            class="result-card hidden"
+        >
+
+            <div class="result-header">
+
+                <div>
+
+                    <span class="section-label">
+                        ANALYSIS RESULT
+                    </span>
+
+                    <h2 id="predictionTitle">
+                        Prediction
+                    </h2>
+
+                </div>
+
+                <span id="confidenceBadge">
+                    Confidence
+                </span>
+
+            </div>
+
+
+            <div
+                id="predictionMessage"
+                class="prediction-message"
+            ></div>
+
+
+            <div class="result-grid">
+
+                <!-- Probability panel -->
+                <div class="probability-panel">
+
+                    <h3>Class Probabilities</h3>
+
+                    <div class="probability-row">
+
+                        <div class="probability-label">
+
+                            <span>Legitimate</span>
+
+                            <strong id="legitPercentage">
+                                0%
+                            </strong>
+
+                        </div>
+
+                        <div class="progress-track">
+                            <div
+                                id="legitProgress"
+                                class="progress-fill legit"
+                            ></div>
+                        </div>
+
+                    </div>
+
+
+                    <div class="probability-row">
+
+                        <div class="probability-label">
+
+                            <span>Fake</span>
+
+                            <strong id="fakePercentage">
+                                0%
+                            </strong>
+
+                        </div>
+
+                        <div class="progress-track">
+                            <div
+                                id="fakeProgress"
+                                class="progress-fill fake"
+                            ></div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Metrics panel -->
+                <div class="metrics-panel">
+
+                    <h3>Prediction Details</h3>
+
+                    <div class="metric-item">
+
+                        <span>Confidence</span>
+
+                        <strong id="confidenceValue">
+                            —
+                        </strong>
+
+                    </div>
+
+                    <div class="metric-item">
+
+                        <span>Inference Time</span>
+
+                        <strong id="inferenceTime">
+                            —
+                        </strong>
+
+                    </div>
+
+                    <div class="metric-item">
+
+                        <span>Model</span>
+
+                        <strong>
+                            XLM-R Base
+                        </strong>
+
+                    </div>
+
+                    <div class="metric-item">
+
+                        <span>Format</span>
+
+                        <strong>
+                            INT8 ONNX
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="disclaimer">
+
+                <strong>Important:</strong>
+                This prediction is an AI-generated classification based
+                on textual patterns. It is not independent proof that
+                an article is factually true or false.
+
+            </div>
+
+        </section>
+
+
+        <!-- Model information -->
+        <section class="info-grid">
+
+            <div class="info-card">
+
+                <span class="info-icon">🤖</span>
+
+                <h3>XLM-RoBERTa</h3>
+
+                <p>
+                    Multilingual transformer model fine-tuned
+                    for fake news classification.
+                </p>
+
+            </div>
+
+
+            <div class="info-card">
+
+                <span class="info-icon">⚡</span>
+
+                <h3>Fast Inference</h3>
+
+                <p>
+                    Quantized ONNX deployment for efficient
+                    CPU-based prediction.
+                </p>
+
+            </div>
+
+
+            <div class="info-card">
+
+                <span class="info-icon">🌍</span>
+
+                <h3>Five Languages</h3>
+
+                <p>
+                    English, Hindi, Indonesian, Swahili,
+                    and Vietnamese.
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- Footer -->
+    <footer class="app-footer">
+
+        <p>
+            Multilingual Fake News Detector
+        </p>
+
+        <p>
+            XLM-RoBERTa · Quantized ONNX · v3.0.0
+        </p>
+
+    </footer>
+
+</div>
+
+
+<!-- Install instructions -->
+<div
+    id="installHelp"
+    class="modal hidden"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="installHelpTitle"
+>
+
+    <div class="modal-content">
+
+        <button
+            id="closeInstallHelp"
+            class="modal-close"
+            type="button"
+            aria-label="Close"
+        >
+            ×
+        </button>
+
+        <h2 id="installHelpTitle">
+            Install the App
+        </h2>
+
+        <p id="installInstructions">
+            Use your browser's install or
+            "Add to Home Screen" option.
+        </p>
+
+    </div>
+
+</div>
+
+
+<script src="./app.js"></script>
+
+</body>
+</html>

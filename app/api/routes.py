@@ -3,51 +3,63 @@ from fastapi import APIRouter
 from src.inference import predict_news
 from app.api.schemas import (
     NewsRequest,
-    PredictionResponse
+    PredictionResponse,
 )
 
 router = APIRouter(
     prefix="/api/v1",
-    tags=["Fake News Detection"]
+    tags=["Fake News Detection"],
 )
 
 
 @router.post(
     "/predict",
-    response_model=PredictionResponse
+    response_model=PredictionResponse,
 )
 def predict(request: NewsRequest):
-
+    """
+    Classify submitted news text as Legit or Fake.
+    """
     return predict_news(request.text)
 
 
 @router.get("/")
 def root():
-
+    """
+    API root endpoint.
+    """
     return {
-        "message": "Multilingual Fake News Detection API"
+        "message": "Multilingual Fake News Detection API",
+        "version": "3.0.0",
     }
 
 
-@router.get("/health")
+@router.get("/health", status_code=200)
 def health():
-
+    """
+    Health check endpoint.
+    """
     return {
-        "status": "healthy"
+        "status": "healthy",
+        "service": "Multilingual Fake News Detection API",
     }
 
 
 @router.get("/info")
 def info():
-
+    """
+    Model and service information.
+    """
     return {
-        "model": "XLM-RoBERTa",
-        "version": "1.1.0"
-    }
-
-@router.get("/health", status_code=200)
-def health():
-    return {
-        "status": "healthy",
-        "service": "Multilingual Fake News Detection API"
+        "model": "XLM-RoBERTa-base",
+        "version": "3.0.0",
+        "format": "Quantized ONNX",
+        "quantization": "Dynamic INT8",
+        "languages": [
+            "English",
+            "Hindi",
+            "Indonesian",
+            "Swahili",
+            "Vietnamese",
+        ],
     }

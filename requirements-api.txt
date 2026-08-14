@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+optimum-onnx
+onnxruntime
+transformers
+huggingface_hub
+numpy
+pandas
