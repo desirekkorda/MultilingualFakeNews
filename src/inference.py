@@ -68,12 +68,7 @@ _tokenizer = None
 
 def load_model():
     """
-    Load the Hugging Face tokenizer and quantized ONNX model once.
-
-    Returns
-    -------
-    tuple
-        (model, tokenizer)
+    Load the tokenizer and quantized ONNX model once.
     """
 
     global _model
@@ -81,27 +76,56 @@ def load_model():
 
     if _model is None or _tokenizer is None:
 
-        print("Loading multilingual tokenizer...")
+        print("=== MODEL LOAD START ===", flush=True)
+
+        print(
+            f"HF_REPO={HF_REPO}",
+            flush=True
+        )
+
+        print(
+            f"MODEL_FILENAME={MODEL_FILENAME}",
+            flush=True
+        )
+
+        print(
+            "Loading multilingual tokenizer...",
+            flush=True
+        )
 
         _tokenizer = AutoTokenizer.from_pretrained(
             HF_REPO
         )
 
-        print("Loading quantized ONNX model...")
+        print(
+            "Tokenizer loaded successfully.",
+            flush=True
+        )
+
+        print(
+            "Loading quantized ONNX model...",
+            flush=True
+        )
 
         _model = ORTModelForSequenceClassification.from_pretrained(
             HF_REPO,
             file_name=MODEL_FILENAME
         )
 
-        # Preserve our explicit label mapping.
+        print(
+            "Quantized ONNX model loaded successfully.",
+            flush=True
+        )
+
         _model.config.id2label = ID2LABEL
         _model.config.label2id = LABEL2ID
 
-        print("Multilingual ONNX model ready.")
+        print(
+            "=== MODEL LOAD COMPLETE ===",
+            flush=True
+        )
 
     return _model, _tokenizer
-
 
 # -------------------------------------------------------------------------
 # Prediction helper
