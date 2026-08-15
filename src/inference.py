@@ -121,20 +121,21 @@ def load_model():
                 flush=True
             )
 
-        print(
-            "Loading local tokenizer...",
-            flush=True
-        )
+        print("Loading local tokenizer...", flush=True)
 
-        _tokenizer = AutoTokenizer.from_pretrained(
-            str(TOKENIZER_DIR),
-            local_files_only=True
-        )
+        try:
+            _tokenizer = AutoTokenizer.from_pretrained(
+                str(TOKENIZER_DIR),
+                local_files_only=True
+            )
+        except Exception as exc:
+            print(
+                f"TOKENIZER LOAD ERROR: {type(exc).__name__}: {exc}",
+                flush=True
+            )
+            raise
 
-        print(
-            "Tokenizer loaded successfully.",
-            flush=True
-        )
+        print("Tokenizer loaded successfully.", flush=True)
 
         print(
             "Loading quantized ONNX model...",
