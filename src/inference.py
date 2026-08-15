@@ -10,7 +10,7 @@ import numpy as np
 
 from optimum.onnxruntime import ORTModelForSequenceClassification
 from transformers import XLMRobertaTokenizer
-Fast
+
 # -------------------------------------------------------------------------
 # Configuration
 # -------------------------------------------------------------------------
