@@ -10,7 +10,7 @@ import numpy as np
 
 from optimum.onnxruntime import ORTModelForSequenceClassification
 from transformers import XLMRobertaTokenizer
-
+Fast
 # -------------------------------------------------------------------------
 # Configuration
 # -------------------------------------------------------------------------
@@ -123,8 +123,8 @@ def load_model():
     # ---------------------------------------------------------
 
     print(
-        "Loading XLM-R fast tokenizer...",
-        flush=True
+        "Loading XLM-R SentencePiece tokenizer...",
+        flush=True,
     )
 
     _tokenizer = XLMRobertaTokenizer.from_pretrained(
