@@ -93,8 +93,16 @@ def load_model():
             flush=True
         )
 
+        from pathlib import Path
+
+        PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+        TOKENIZER_DIR = (
+            PROJECT_ROOT / "models" / "production_multilingual"
+        )
+
         _tokenizer = AutoTokenizer.from_pretrained(
-            HF_REPO
+            str(TOKENIZER_DIR)
         )
 
         print(
