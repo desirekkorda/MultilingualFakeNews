@@ -9,8 +9,7 @@ from typing import Any
 import numpy as np
 
 from optimum.onnxruntime import ORTModelForSequenceClassification
-from transformers import XLMRobertaTokenizerFast
-
+from transformers import XLMRobertaTokenizer
 
 # -------------------------------------------------------------------------
 # Configuration
@@ -128,7 +127,7 @@ def load_model():
         flush=True
     )
 
-    _tokenizer = XLMRobertaTokenizerFast.from_pretrained(
+    _tokenizer = XLMRobertaTokenizer.from_pretrained(
         str(TOKENIZER_DIR),
         local_files_only=True,
     )
