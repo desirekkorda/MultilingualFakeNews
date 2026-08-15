@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
-from src.inference import predict_news
+from src.inference import predict_news, load_model
+
 from app.api.schemas import (
     NewsRequest,
     PredictionResponse,
@@ -62,4 +63,19 @@ def info():
             "Swahili",
             "Vietnamese",
         ],
+    }
+
+
+# ... existing router ...
+
+@router.get("/debug/model-load")
+def debug_model_load():
+    """
+    Explicitly test production model initialization.
+    """
+    load_model()
+
+    return {
+        "status": "loaded",
+        "message": "Tokenizer and ONNX model loaded successfully."
     }
