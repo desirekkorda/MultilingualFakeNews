@@ -4,5 +4,6 @@ optimum-onnx
 onnxruntime
 transformers
 huggingface_hub
+sentencepiece
 numpy
 pandas

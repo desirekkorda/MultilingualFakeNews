@@ -89,3 +89,15 @@ def debug_model_load():
         "status": "loaded",
         "message": "Tokenizer and ONNX model loaded successfully."
     }
+
+
+
+@router.get("/debug/model-load")
+def debug_model_load():
+
+    load_model()
+
+    return {
+        "status": "loaded",
+        "message": "Tokenizer and ONNX model loaded successfully."
+    }

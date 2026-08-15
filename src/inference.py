@@ -9,6 +9,10 @@ Production model:
 import os
 from typing import Any
 
+from pathlib import Path
+
+from transformers import XLMRobertaTokenizerFast
+
 import numpy as np
 import pandas as pd
 
@@ -66,11 +70,16 @@ _model = None
 _tokenizer = None
 
 
-def load_model():
-    """
-    Load the tokenizer and quantized ONNX model once.
-    """
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
+TOKENIZER_DIR = (
+    PROJECT_ROOT
+    / "models"
+    / "production_multilingual"
+)
+
+
+def load_model():
     global _model
     global _tokenizer
 
@@ -79,78 +88,85 @@ def load_model():
         print("=== MODEL LOAD START ===", flush=True)
 
         print(
-            f"HF_REPO={HF_REPO}",
-            flush=True
-        )
-
-        print(
-            f"MODEL_FILENAME={MODEL_FILENAME}",
-            flush=True
-        )
-
-        print(
-            "Loading multilingual tokenizer...",
-            flush=True
-        )
-
-        from pathlib import Path
-
-        PROJECT_ROOT = Path(__file__).resolve().parents[1]
-
-        TOKENIZER_DIR = (
-            PROJECT_ROOT
-            / "models"
-            / "production_multilingual"
-        )
-
-        print(
             f"Tokenizer directory: {TOKENIZER_DIR}",
             flush=True
         )
 
+        required_files = [
+            "tokenizer.json",
+            "tokenizer_config.json",
+            "special_tokens_map.json",
+            "sentencepiece.bpe.model",
+        ]
+
+        for filename in required_files:
+            path = TOKENIZER_DIR / filename
+
+            print(
+                f"{filename}: "
+                f"{path.exists()}",
+                flush=True
+            )
+
+        # ---------------------------------------------------------
+        # Explicit XLM-R fast tokenizer
+        # ---------------------------------------------------------
         print(
-            f"Tokenizer directory exists: "
-            f"{TOKENIZER_DIR.exists()}",
+            "Loading XLM-R fast tokenizer...",
             flush=True
         )
 
-        if TOKENIZER_DIR.exists():
-            print(
-                "Tokenizer files:",
-                [p.name for p in TOKENIZER_DIR.iterdir()],
-                flush=True
-            )
-
-        print("Loading local tokenizer...", flush=True)
-
         try:
-            _tokenizer = AutoTokenizer.from_pretrained(
+            _tokenizer = XLMRobertaTokenizerFast.from_pretrained(
                 str(TOKENIZER_DIR),
-                local_files_only=True
+                local_files_only=True,
             )
-        except Exception as exc:
+
             print(
-                f"TOKENIZER LOAD ERROR: {type(exc).__name__}: {exc}",
+                "Tokenizer loaded successfully.",
                 flush=True
             )
+
+        except Exception as exc:
+
+            print(
+                "TOKENIZER LOAD ERROR:",
+                type(exc).__name__,
+                str(exc),
+                flush=True
+            )
+
             raise
 
-        print("Tokenizer loaded successfully.", flush=True)
-
+        # ---------------------------------------------------------
+        # ONNX model
+        # ---------------------------------------------------------
         print(
             "Loading quantized ONNX model...",
             flush=True
         )
 
-        _model = ORTModelForSequenceClassification.from_pretrained(
-            HF_REPO,
-            file_name=MODEL_FILENAME
-        )
+        try:
+            _model = ORTModelForSequenceClassification.from_pretrained(
+                HF_REPO,
+                file_name=MODEL_FILENAME,
+            )
 
-        print(
-            "Quantized ONNX model loaded successfully.",
-            flush=True
-        )
+            print(
+                "Quantized ONNX model loaded successfully.",
+                flush=True
+            )
+
+        except Exception as exc:
+
+            print(
+                "ONNX MODEL LOAD ERROR:",
+                type(exc).__name__,
+                str(exc),
+                flush=True
+            )
+
+            raise
 
         _model.config.id2label = ID2LABEL
         _model.config.label2id = LABEL2ID
