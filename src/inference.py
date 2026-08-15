@@ -98,11 +98,37 @@ def load_model():
         PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
         TOKENIZER_DIR = (
-            PROJECT_ROOT / "models" / "production_multilingual"
+            PROJECT_ROOT
+            / "models"
+            / "production_multilingual"
+        )
+
+        print(
+            f"Tokenizer directory: {TOKENIZER_DIR}",
+            flush=True
+        )
+
+        print(
+            f"Tokenizer directory exists: "
+            f"{TOKENIZER_DIR.exists()}",
+            flush=True
+        )
+
+        if TOKENIZER_DIR.exists():
+            print(
+                "Tokenizer files:",
+                [p.name for p in TOKENIZER_DIR.iterdir()],
+                flush=True
+            )
+
+        print(
+            "Loading local tokenizer...",
+            flush=True
         )
 
         _tokenizer = AutoTokenizer.from_pretrained(
-            str(TOKENIZER_DIR)
+            str(TOKENIZER_DIR),
+            local_files_only=True
         )
 
         print(
