@@ -9,25 +9,23 @@ from src.inference import load_model, unload_model
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-
     print(
-        "Starting application: loading production model...",
-        flush=True
+        "STARTUP: loading production multilingual model...",
+        flush=True,
     )
 
-    # This executes before the API begins accepting requests.
     load_model()
 
     print(
-        "Production model loaded. API is ready.",
-        flush=True
+        "STARTUP: production multilingual model loaded.",
+        flush=True,
     )
 
     yield
 
     print(
-        "Shutting down: releasing model resources...",
-        flush=True
+        "SHUTDOWN: releasing model resources...",
+        flush=True,
     )
 
     unload_model()
@@ -46,7 +44,7 @@ app = FastAPI(
         "url": "https://github.com/desirekkorda",
     },
     license_info={
-        "name": "MIT License"
+        "name": "MIT License",
     },
     lifespan=lifespan,
 )
@@ -56,11 +54,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=False,
-    allow_methods=[
-        "GET",
-        "POST",
-        "OPTIONS"
-    ],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
